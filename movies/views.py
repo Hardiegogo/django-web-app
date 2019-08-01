@@ -20,10 +20,39 @@ def create(request):
     if request.method == 'POST':
         data = {
             'Name': request.POST.get('name'),
-            'Pictures': [{'url': request.POST.get('url')}],
+            'Pictures': [{'url': request.POST.get('url') or 'http://izuum.com/noimage.jpg'}],
             'Rating': int(request.POST.get('rating')),
             'Notes': request.POST.get('notes')
         }
-
-        AT.insert(data)
+        try :
+            response = AT.insert(data)
+            messages.success(request,'New movie added:{}'.format(response['fields'].get('Name')))
+        except Exception as e:
+            messages.warning(request,'got an error: {}'.format(e))
     return redirect('/')
+
+def edit(request,movie_id) :
+    if request.method == 'POST':
+        data = {
+            'Name': request.POST.get('name'),
+            'Pictures':  [{'url': request.POST.get('url')}],
+            'Rating': int(request.POST.get('rating')),
+            'Notes': request.POST.get('notes')
+        }
+        try :
+            response = AT.update(movie_id,data)
+            messages.success(request, 'Updated movie : {}'.format(response['fields'].get('Name')))
+        except Exception as e:
+            messages.warning(request,'got an error: {}'.format(e))
+
+    return redirect('/')
+
+def delete(request,movie_id) :
+    movie_name=AT.get(movie_id)['fields'].get('Name')
+    try :
+        response = AT.delete(movie_id)
+        messages.warning(request, 'Deleted movie : {}'.format(movie_name))
+    except Exception as e:
+        messages.warning(request, 'got an error: {}'.format(e))
+    return redirect('/')
+
